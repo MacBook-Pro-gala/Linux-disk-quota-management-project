@@ -104,7 +104,7 @@ repquota /dev/sdb1
 ![image](5.jpg)
 
 ### The script text
-```
+```shell
 
 
 !/bin/bash
