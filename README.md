@@ -106,15 +106,18 @@ repquota /dev/sdb1
 ### The script text
 ```
 
-#!/bin/bash
+
+!/bin/bash
 #userlist=cat /etc/passwd | awk 'BEGIN {FS=":"}{print $1}'
 TEXT1=`cat "/etc/passwd"`
+DATE=`date "+%Y-%m-%d_%H-%M"`
+echo $DATE
 USERNUMBER=`wc -l /etc/passwd|cut -d' ' -f1`
 echo $USERNUMBER
 USERALLLIST=`echo "$TEXT1" | awk 'BEGIN {FS=":"}{print $1}'`
 
 echo $USERALLLIST
-echo "******************************************************************************"
+echo "********************************************************************************************************"
 for((i=1;i<=$USERNUMBER;i++));do
     echo "这是第 $i 个用户";
     FORUSER=`cut -d: -f1 /etc/passwd | head -$i | tail -1`
@@ -127,8 +130,24 @@ for((i=1;i<=$USERNUMBER;i++));do
     if [ $CHECKFULLUSED -eq 500000 ]
     then
        echo "over used"
-       mv /app/data/$FORUSER/* /app/overuseddata  #移动所有滥用文件到overuseddata（不包括隐藏的配置文件）
-       echo "文件已移动"
+       mkdir overuseddata-$FORUSER
+       mv ./overuseddata-$FORUSER /app/overuseddata
+       mv /app/data/$FORUSER/* /app/overuseddata/overuseddata-$FORUSER  #移动所有滥用文件到overuseddata（不包括隐藏的配置文件）
+       tar -czvf $FORUSER-$DATE.tar.gz /app/overuseddata/overuseddata-$FORUSER
+       mv /app/$FORUSER-$DATE.tar.gz /app/overuseddata
+       rm -Rf /app/overuseddata/overuseddata-$FORUSER
+       echo "文件已移动"    
+    elif [ $CHECKFULLUSED -gt 500000 ]
+    then
+       echo "over used"
+       mkdir overuseddata-$FORUSER
+       mv ./overuseddata-$FORUSER /app/overuseddata
+       mv /app/data/$FORUSER/* /app/overuseddata/overuseddata-$FORUSER  #移动所有滥用文件到overuseddata（不包括隐藏的配置文件）
+       tar -czvf $FORUSER-$DATE.tar.gz /app/overuseddata/overuseddata-$FORUSER
+       mv /app/$FORUSER-$DATE.tar.gz /app/overuseddata
+       
+rm -Rf /app/overuseddata/overuseddata-$FORUSER
+       echo "文件已移动" 
     else
        echo "used well"
     fi
