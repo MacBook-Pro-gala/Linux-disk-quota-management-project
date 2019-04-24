@@ -1,4 +1,4 @@
-# Linux磁盘配额管理项目
+# Linux-disk-quota-management-project
 [TOC]
 ***
 >**ssh tools**：Termius
@@ -24,82 +24,86 @@ vi ifcfg-ens33
 
 2. ```fdisk /dev/sdb```Format new hard disk
 
-3. 输入m可以查看帮助
+3. Enter m to see help
 
-4. 输入n新建分区，输入p新建主分区，输入1（主分区号），分别磁盘分区的起始终止位置，这里采用默认，即分区为硬盘大小。
+4. Enter n to create a new partition, p to create a new primary partition, and 1 (primary partition number) to start and end the disk partition respectively.
 
-5. 输入w对分区进行保存
+5. Enter w to save the partition
 
-6. ```fdisk -l ```查看分区，有了sdb1 ;
-7. 输入```mkfs.ext4```将分区格式化为ext4格式
-8. 编辑/etc/fstab ，在最下面添加：
-/dev/sdb1              /app                     ext4    defaults        0 0
-使得磁盘开机挂载到/app目录
+6. ```Fdisk -l ` ` ` view partitions, with sdb1;
 
-### 修改内核fstab，对根目录开启磁盘配额限制
+7. Input ` ` ` MKFS. Corruption ` ` ` partitions formatted into corruption format
+
+8. Edit /etc/fstab and add at the bottom:
+
+  / dev/sdb1 / app corruption defaults 0 0
+
+  Make the disk boot mount to the /app directory
+
+### Modify the kernel fstab to open the disk quota limit on the root directory
 ```
 vim /etc/fstab 
 ```
 ![image](1.jpg)
 
-标出来的地方就是需要新增的地方，这个表示是对根目录进行磁盘配额限制，当然，也可以加在其他行，则是对其他的目录进行磁盘配额限制。
+The marked places are the places that need to be added. This means that the disk quota limit is applied to the root directory. Of course, it can also be added to other lines, which means that the disk quota limit is applied to other directories.
 
-### 查看目录挂载位置
+### View the directory mount location
 ```
 df -h
 ```
 ![image](2.jpg)
 
-### 重新挂载根目录分区，内核重新读取/etc/fstab文件
+### The root partition is remounted and the kernel reads the /etc/fstab file again
 ```
 mount -o remount /app
 mount | grep quota
 ```
 ![image](3.jpg)
 
-### 安装quota
+### install quota
 ```
 yum install quota
 ```
 
-### 通过quotacheck命令在根目录下生成quota配置文件
+### Generate the quota configuration file in the root directory through the quotacheck command
 ```
 quotacheck -cugm /dev/sdb1
 ll / | grep quota
 ```
 ![image](4.jpg)
 
-### 启动磁盘配额
+### Boot disk quota
 ```
 quotaon /dev/sdb1
 ```
 
-### 在/app/data创建用户
+### Create a user in /app/data
 ```
 mkdir thenewuser #记得更改文件权限
 cp .bash_logout  .bash_profil  .bashrc /app/data/thenewuser
 useradd -m -d /app/data/thenewuser thenewuser
 ```
 
-### 对用户开启
+### Open to user
 ```
 edquota -u thenewuser
 ```
 
-### 模拟大文件写入
+### Simulate large file writes
 ```
 dd if=/dev/zero of=/app/data/file1 bs=1M count=450  #未超上限，无报错
 dd if=/dev/zero of=/app/data/file2 bs=1M count=450  #报错
 ```
 
 
-### 查看磁盘使用情况
+### View disk usage
 ```
 repquota /dev/sdb1
 ```
 ![image](5.jpg)
 
-### 脚本正文
+### The script text
 ```
 
 #!/bin/bash
